@@ -38,42 +38,42 @@ checkFfmpeg();
 $processor = new VideoProcessor($inputFile);
 
 // // ========================================
-// // RESIZE VIDEO
-// // ========================================
-// echo "Resizing video to max 720p...\n";
+// RESIZE VIDEO
+// ========================================
+echo "Resizing video to max 720p...\n";
 
-// $resize = $processor->resize(720)->setCrf(20);
-// $processor->process($resize, $outputFile, function($progress) {
-//     echo "\rResize progress: {$progress}%";
-// });
-// echo "\nResized video saved to: $outputFile\n\n";
+$resize = $processor->resize(720)->setCrf(20);
+$processor->process($resize, $outputFile, function($progress) {
+    echo "\rResize progress: {$progress}%";
+});
+echo "\nResized video saved to: $outputFile\n\n";
 
-// // ========================================
-// // OPTIMIZE VIDEO
-// // ========================================
-// echo "Optimizing video...\n";
+// ========================================
+// OPTIMIZE VIDEO
+// ========================================
+echo "Optimizing video...\n";
 
-// $optimize = $processor->optimize()->setAudioBitrate(128);
-// $processor->process($optimize, $optimizedFile, function($progress) {
-//     echo "\rOptimize progress: {$progress}%";
-// });
-// echo "\nOptimized video saved to: $optimizedFile\n\n";
+$optimize = $processor->optimize()->setAudioBitrate(128);
+$processor->process($optimize, $optimizedFile, function($progress) {
+    echo "\rOptimize progress: {$progress}%";
+});
+echo "\nOptimized video saved to: $optimizedFile\n\n";
 
-// // ========================================
-// // GENERATE THUMBNAIL
-// // ========================================
-// echo "Generating thumbnail...\n";
+// ========================================
+// GENERATE THUMBNAIL
+// ========================================
+echo "Generating thumbnail...\n";
 
-// $thumbnail = $processor->thumbnail()->setTimestamp(1.0)->setSize(320, 180);
-// $processor->process($thumbnail, $thumbnailFile);
-// echo "Thumbnail saved to: $thumbnailFile\n\n";
+$thumbnail = $processor->thumbnail()->setTimestamp(1.0)->setSize(320, 180);
+$processor->process($thumbnail, $thumbnailFile);
+echo "Thumbnail saved to: $thumbnailFile\n\n";
 
 // ========================================
 // HLS GENERATION
 // ========================================
 echo "Generating HLS renditions...\n";
 
-$hls = $processor->generateHls($hlsDir);
+$hls = $processor->generateHls($hlsDir, [360, 480]);
 $masterPlaylist = $hls->generate(function($progress) {
     echo "\rHLS progress: {$progress}%";
 });

@@ -38,9 +38,9 @@ class VideoProcessor
         return new Thumbnail();
     }
 
-    public function generateHls(string $outputDir): HlsGenerator
+    public function generateHls(string $outputDir, array $heights = null): HlsGenerator
     {
-        return new HlsGenerator($this->ffmpeg, $this->inputFile, $outputDir, $this->info);
+        return new HlsGenerator($this->ffmpeg, $this->inputFile, $outputDir, $this->info, $heights);
     }
 
     public function process($operation, string $outputFile, callable $progressCallback = null): void

@@ -14,14 +14,16 @@ class HlsGenerator
     private BitrateCalculator $calculator;
     private array $renditions = [];
     private bool $hardwareAccel = false;
+    private ?array $customHeights = null;
 
-    public function __construct(Ffmpeg $ffmpeg, string $inputFile, string $outputDir, array $info)
+    public function __construct(Ffmpeg $ffmpeg, string $inputFile, string $outputDir, array $info, ?array $heights = null)
     {
         $this->ffmpeg = $ffmpeg;
         $this->inputFile = $inputFile;
         $this->outputDir = $outputDir;
         $this->info = $info;
         $this->calculator = new BitrateCalculator();
+        $this->customHeights = $heights;
         $this->setupRenditions();
     }
 
@@ -33,7 +35,7 @@ class HlsGenerator
 
     private function setupRenditions(): void
     {
-        $heights = [360, 480, 720, 1080];
+        $heights = $this->customHeights ?? [360, 480, 720, 1080];
         foreach ($heights as $height) {
             if ($this->info['height'] >= $height) {
                 $videoBitrate = $this->calculator->calculateVideoBitrate($height);
@@ -45,41 +47,39 @@ class HlsGenerator
 
     public function generate(callable $progressCallback = null): string
     {
-        $filter = [];
-        $map = [];
-        $varStreamMap = [];
+        $master = new MasterPlaylist();
 
-        foreach ($this->renditions as $i => $rendition) {
+        foreach ($this->renditions as $rendition) {
             $codec = $this->hardwareAccel ? 'h264_nvenc' : 'libx264';
-            $filter[] = "[0:v]scale=if(gt(ih,{$rendition->height}),-2,{$rendition->height})[v{$rendition->height}p]";
-            $map[] = "-map [v{$rendition->height}p] -map 0:a:0 " .
-                "-c:v:{$i} {$codec} -b:v:{$i} {$rendition->videoBitrate}k -maxrate {$rendition->maxrate}k -bufsize {$rendition->bufsize}k " .
-                "-c:a:{$i} aac -b:a:{$i} {$rendition->audioBitrate}k";
-            $varStreamMap[] = "v:{$i},a:{$i}";
+            $resDir = "{$this->outputDir}/{$rendition->height}";
+            if (!is_dir($resDir)) {
+                mkdir($resDir, 0777, true);
+            }
+            $playlistFile = "{$resDir}/index.m3u8";
+            $segmentFile = "{$resDir}/segment_%03d.ts";
+
+            $builder = $this->ffmpeg->command()
+                ->input($this->inputFile)
+                ->addOption('-vf', "scale=-2:{$rendition->height}")
+                ->addOption('-c:v', $codec)
+                ->addOption('-b:v', $rendition->videoBitrate . 'k')
+                ->addOption('-maxrate', $rendition->maxrate . 'k')
+                ->addOption('-bufsize', $rendition->bufsize . 'k')
+                ->addOption('-c:a', 'aac')
+                ->addOption('-b:a', $rendition->audioBitrate . 'k')
+                ->addOption('-hls_time', '10')
+                ->addOption('-hls_playlist_type', 'vod')
+                ->addOption('-hls_segment_filename', $segmentFile)
+                ->output($playlistFile);
+
+            $this->ffmpeg->run($progressCallback, $this->info['duration']);
+
+            $master->addRendition($rendition, "{$rendition->height}/index.m3u8");
         }
 
-        $filterComplex = implode('; ', $filter);
-        $mapCmd = implode(' ', $map);
-        $varStreamMapStr = implode(' ', $varStreamMap);
+        $masterContent = $master->generate();
+        file_put_contents("{$this->outputDir}/master.m3u8", $masterContent);
 
-        $hlsSegmentTemplate = "{$this->outputDir}/%v/segment_%03d.ts";
-        $hlsIndexTemplate = "{$this->outputDir}/%v/index.m3u8";
-        $masterPlaylist = 'master.m3u8';
-
-        $builder = $this->ffmpeg->command()
-            ->input($this->inputFile)
-            ->addOption('-filter_complex', $filterComplex)
-            ->addRaw($mapCmd)
-            ->addOption('-f', 'hls')
-            ->addOption('-hls_time', '10')
-            ->addOption('-hls_playlist_type', 'vod')
-            ->addOption('-hls_segment_filename', $hlsSegmentTemplate)
-            ->addOption('-master_pl_name', $masterPlaylist)
-            ->addOption('-var_stream_map', $varStreamMapStr)
-            ->output($hlsIndexTemplate);
-
-        $this->ffmpeg->run($progressCallback, $this->info['duration']);
-
-        return "{$this->outputDir}/{$masterPlaylist}";
+        return "{$this->outputDir}/master.m3u8";
     }
 }
