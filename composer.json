@@ -1,0 +1,32 @@
+{
+    "name": "ustadev/video-pipeline",
+    "description": "A production-ready PHP library for video processing using FFmpeg",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+      "psr-4": {
+        "ustadev\\videopipeline\\": "src/"
+      }
+    },
+    "autoload-dev": {
+      "psr-4": {
+        "ustadev\\videopipeline\\tests\\": "tests/"
+      }
+    },
+    "require": {
+      "php": ">=8.0",
+      "ext-json": "*",
+      "ext-mbstring": "*"
+    },
+    "config": {
+      "optimize-autoloader": true,
+      "sort-packages": true
+    },
+    "authors": [
+      {
+        "name": "UstaDev",
+        "email": "contact@ustadev.com"
+      }
+    ]
+  }
+  

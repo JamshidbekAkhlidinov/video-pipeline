@@ -1,0 +1,24 @@
+# Composer
+/vendor/
+/composer.lock
+
+# Test outputs
+/hls/
+/output_*.mp4
+/thumbnail.jpg
+/input.*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
