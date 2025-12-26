@@ -65,4 +65,4 @@ $masterPlaylist = $hls->generate();
 
 ## License
 
-MIT
+MIT# video-pipeline
