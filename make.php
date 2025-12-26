@@ -18,21 +18,6 @@ if (!is_dir($hlsDir)) {
 }
 
 // ========================================
-// CHECK FFMPEG
-// ========================================
-function checkFfmpeg(): void {
-    exec('ffmpeg -version 2>&1', $output, $returnVar);
-    if ($returnVar !== 0) {
-        echo "Error: ffmpeg not found!\n";
-        exit(1);
-    }
-    echo "FFmpeg found, version info:\n";
-    echo implode("\n", array_slice($output, 0, 3)) . "\n\n";
-}
-
-checkFfmpeg();
-
-// ========================================
 // INITIALIZE PROCESSOR
 // ========================================
 $processor = new VideoProcessor($inputFile);
