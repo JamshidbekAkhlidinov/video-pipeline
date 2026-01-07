@@ -4,12 +4,11 @@ A production-ready PHP library for video processing using FFmpeg.
 
 ## Features
 
-- Smart video resize with aspect ratio preservation
-- MP4 optimization with H.264 and AAC
-- HLS generation with multiple renditions
-- Automatic bitrate calculation
-- FFprobe integration for video metadata
-- Thumbnail generation
+- Video optimization with resizing to specified max height while preserving aspect ratio
+- MP4 optimization with H.264 and AAC encoding
+- HLS generation with multiple renditions based on height
+- Automatic bitrate calculation for video and audio
+- FFprobe integration for video metadata extraction
 - Progress tracking with callbacks
 - Hardware acceleration support (NVENC, fallback to software)
 
@@ -21,27 +20,32 @@ composer require ustadev/video-pipeline
 
 ## Usage
 
-### Basic Video Processing
+### Video Optimization
 
 ```php
 use ustadev\videopipeline\video\VideoProcessor;
 
 $processor = new VideoProcessor('input.mp4');
 
-// Resize video
-$resize = $processor->resize(720)->setCrf(20);
-$processor->process($resize, 'output_resized.mp4');
+// Optimize video with max height 720, CRF 20, preset slow, audio bitrate 192k
+$optimize = $processor->optimize('output_optimized.mp4', 720)
+    ->setCrf(20)
+    ->setPreset('slow')
+    ->setAudioBitrate(192);
 
-// Optimize MP4
-$optimize = $processor->optimize()->setAudioBitrate(192);
-$processor->process($optimize, 'output_optimized.mp4');
+$outputFile = $optimize->generate(function($progress) {
+    echo "Progress: {$progress}%\n";
+});
+```
 
-// Generate thumbnail
-$thumbnail = $processor->thumbnail()->setTimestamp(5.0)->setSize(640, 360);
-$processor->process($thumbnail, 'thumbnail.jpg');
+### HLS Generation
 
-// Generate HLS
-$hls = $processor->generateHls('/path/to/output/dir');
+```php
+$processor = new VideoProcessor('input.mp4');
+
+// Generate HLS with custom heights (360p, 720p)
+$hls = $processor->generateHls('/path/to/output/dir', [360, 720]);
+
 $masterPlaylist = $hls->generate(function($progress) {
     echo "Progress: {$progress}%\n";
 });
@@ -50,9 +54,11 @@ $masterPlaylist = $hls->generate(function($progress) {
 ### Hardware Acceleration
 
 ```php
-$optimize = $processor->optimize()->enableHardwareAccel();
-$processor->process($optimize, 'output_hw.mp4');
+// Optimize with hardware acceleration
+$optimize = $processor->optimize('output_hw.mp4', 1080)->enableHardwareAccel();
+$outputFile = $optimize->generate();
 
+// HLS with hardware acceleration
 $hls = $processor->generateHls('/path/to/output/dir')->enableHardwareAccel();
 $masterPlaylist = $hls->generate();
 ```
