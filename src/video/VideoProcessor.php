@@ -2,6 +2,7 @@
 
 namespace ustadev\videopipeline\video;
 
+use ustadev\videopipeline\contracts\ProcessorInterface;
 use ustadev\videopipeline\ffmpeg\Ffmpeg;
 use ustadev\videopipeline\ffmpeg\Probe;
 use ustadev\videopipeline\support\ProcessRunner;
@@ -67,20 +68,13 @@ class VideoProcessor
         exit(1);
     }
 
-    public function optimize(): Optimize
+    public function optimize(string $outputFile, int $maxHeight = 1080): Optimize
     {
-        return new Optimize();
+        return new Optimize($this->ffmpeg, $this->inputFile, $outputFile, $this->info, $maxHeight);
     }
 
     public function generateHls(string $outputDir, array $heights = null): HlsGenerator
     {
         return new HlsGenerator($this->ffmpeg, $this->inputFile, $outputDir, $this->info, $heights);
-    }
-
-    public function process($operation, string $outputFile, callable $progressCallback = null): void
-    {
-        $builder = $this->ffmpeg->command()->input($this->inputFile)->output($outputFile);
-        $operation->apply($builder);
-        $this->ffmpeg->run($progressCallback, $this->info['duration']);
     }
 }

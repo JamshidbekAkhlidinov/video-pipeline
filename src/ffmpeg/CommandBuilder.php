@@ -8,7 +8,7 @@ class CommandBuilder
 
     public function __construct()
     {
-        $this->parts[] = 'ffmpeg';
+        $this->parts[] = 'ffmpeg -y';
     }
 
     public function input(string $file): self
