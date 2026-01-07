@@ -67,19 +67,9 @@ class VideoProcessor
         exit(1);
     }
 
-    public function resize(int $maxHeight): Resize
-    {
-        return new Resize($maxHeight);
-    }
-
     public function optimize(): Optimize
     {
         return new Optimize();
-    }
-
-    public function thumbnail(): Thumbnail
-    {
-        return new Thumbnail();
     }
 
     public function generateHls(string $outputDir, array $heights = null): HlsGenerator

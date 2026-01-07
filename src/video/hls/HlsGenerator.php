@@ -27,12 +27,6 @@ class HlsGenerator
         $this->setupRenditions();
     }
 
-    public function enableHardwareAccel(): self
-    {
-        $this->hardwareAccel = true;
-        return $this;
-    }
-
     private function setupRenditions(): void
     {
         $heights = $this->customHeights ?? [360, 480, 720, 1080];
@@ -45,6 +39,12 @@ class HlsGenerator
         }
     }
 
+    public function enableHardwareAccel(): self
+    {
+        $this->hardwareAccel = true;
+        return $this;
+    }
+
     public function generate(callable $progressCallback = null): string
     {
         $master = new MasterPlaylist();
@@ -53,12 +53,12 @@ class HlsGenerator
             $codec = $this->hardwareAccel ? 'h264_nvenc' : 'libx264';
             $resDir = "{$this->outputDir}/{$rendition->height}";
             if (!is_dir($resDir)) {
-                mkdir($resDir, 0777, true);
+                mkdir($resDir, 0755, true);
             }
             $playlistFile = "{$resDir}/index.m3u8";
             $segmentFile = "{$resDir}/segment_%03d.ts";
 
-            $builder = $this->ffmpeg->command()
+            $this->ffmpeg->command()
                 ->input($this->inputFile)
                 ->addOption('-vf', "scale=-2:{$rendition->height}")
                 ->addOption('-c:v', $codec)
