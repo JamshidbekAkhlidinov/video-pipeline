@@ -63,7 +63,7 @@ class Optimize
             ->input($this->inputFile);
 
         if ($height < $this->info['height']) {
-            $command->addOption('-vf', "scale=-2:{$height}");
+            $command->addOption('-vf', "scale='if(gt(ih,{$height}),-2,iw)':'if(gt(ih,{$height}),{$height},ih)'");
         }
 
         $command->addOption('-c:v', $codec)

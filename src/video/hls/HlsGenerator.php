@@ -15,6 +15,8 @@ class HlsGenerator
     private array $renditions = [];
     private bool $hardwareAccel = false;
     private ?array $customHeights = null;
+    private string $masterFileName = 'master.m3u8';
+    private int $duration = 10;
 
     public function __construct(Ffmpeg $ffmpeg, string $inputFile, string $outputDir, array $info, ?array $heights = null)
     {
@@ -45,6 +47,21 @@ class HlsGenerator
         return $this;
     }
 
+    public function setMasterFileName($name): self
+    {
+        if (substr($name, -5) !== '.m3u8') {
+            $name .= '.m3u8';
+        }
+        $this->masterFileName = $name;
+        return $this;
+    }
+
+    public function setDuration($duration): self
+    {
+        $this->duration = $duration;
+        return $this;
+    }
+
     public function generate(callable $progressCallback = null): string
     {
         $master = new MasterPlaylist();
@@ -67,7 +84,7 @@ class HlsGenerator
                 ->addOption('-bufsize', $rendition->bufsize . 'k')
                 ->addOption('-c:a', 'aac')
                 ->addOption('-b:a', $rendition->audioBitrate . 'k')
-                ->addOption('-hls_time', '10')
+                ->addOption('-hls_time', $this->duration)
                 ->addOption('-hls_playlist_type', 'vod')
                 ->addOption('-hls_segment_filename', $segmentFile)
                 ->output($playlistFile);
@@ -78,8 +95,8 @@ class HlsGenerator
         }
 
         $masterContent = $master->generate();
-        file_put_contents("{$this->outputDir}/master.m3u8", $masterContent);
+        file_put_contents("{$this->outputDir}/{$this->masterFileName}", $masterContent);
 
-        return "{$this->outputDir}/master.m3u8";
+        return "{$this->outputDir}/{$this->masterFileName}";
     }
 }

@@ -44,7 +44,9 @@ $outputFile = $optimize->generate(function($progress) {
 $processor = new VideoProcessor('input.mp4');
 
 // Generate HLS with custom heights (360p, 720p)
-$hls = $processor->generateHls('/path/to/output/dir', [360, 720]);
+$hls = $processor->generateHls('/path/to/output/dir', [360, 720])
+             ->setMasterFileName("ustadev")
+             ->setDuration(30);;
 
 $masterPlaylist = $hls->generate(function($progress) {
     echo "Progress: {$progress}%\n";

@@ -15,7 +15,10 @@ $processor = new VideoProcessor($inputFile);
 
 echo "Generating HLS renditions...\n";
 
-$hls = $processor->generateHls($hlsDir, [144, 240]);
+$hls = $processor
+    ->generateHls($hlsDir, [480,720])
+    ->setMasterFileName("ustadev")
+    ->setDuration(30);
 
 $masterPlaylist = $hls->generate(function($progress) {
     echo "\rHLS progress: {$progress}%";
